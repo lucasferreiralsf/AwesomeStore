@@ -16,7 +16,7 @@ namespace Data.Migrations
                     UpdatedAt = table.Column<DateTime>(nullable: true),
                     Name = table.Column<string>(maxLength: 60, nullable: false),
                     Email = table.Column<string>(maxLength: 100, nullable: true),
-                    Password = table.Column<string>(nullable: true)
+                    Password = table.Column<string>(maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -27,7 +27,8 @@ namespace Data.Migrations
                 name: "IX_User_Email",
                 table: "User",
                 column: "Email",
-                unique: true);
+                unique: true,
+                filter: "[Email] IS NOT NULL");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

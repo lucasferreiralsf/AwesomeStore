@@ -11,7 +11,8 @@ namespace AwesomeStore.CrossCutting.DependencyInjection
         public static void ConfigureDependenciesRepository(IServiceCollection serviceCollection) {
 
             serviceCollection.AddScoped(typeof (IRepository<>), typeof(BaseRepository<>));
-            serviceCollection.AddDbContext<MyContext>(options => options.UseMySql("Server=localhost;Port=3306;Database=awesome_store_db;Uid=root;Pwd=root"));
+            // serviceCollection.AddDbContext<MyContext>(options => options.UseMySql("Server=localhost;Port=3306;Database=awesome_store_db;Uid=root;Pwd=root"));
+            serviceCollection.AddDbContext<MyContext>(options => options.UseSqlServer("Server=localhost;Database=awesome_store_db;User Id=sa;Password=Sql@test123"));
         }
     }
 }
