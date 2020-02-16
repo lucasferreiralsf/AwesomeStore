@@ -38,7 +38,7 @@ namespace AwesomeStore.Service.Services
 
         public async Task<UserEntity> Put(UserEntity user)
         {
-            return await _repository.InsertAsync(user);
+            return await _repository.UpdateAsync(user);
         }
     }
 }
