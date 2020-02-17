@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using AwesomeStore.Domain.Entities;
 using AwesomeStore.Domain.Interfaces.Services.User;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AwesomeStore.Application.Controllers
@@ -17,7 +18,7 @@ namespace AwesomeStore.Application.Controllers
             _service = service;
         }
 
-
+        [Authorize("Bearer")]
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
@@ -36,6 +37,7 @@ namespace AwesomeStore.Application.Controllers
             }
         }
 
+        [Authorize("Bearer")]
         [HttpGet]
         [Route("{id}", Name = "GetWithId")]
         public async Task<ActionResult> GetById(Guid id)
@@ -53,6 +55,7 @@ namespace AwesomeStore.Application.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] UserEntity user)
         {
@@ -75,6 +78,7 @@ namespace AwesomeStore.Application.Controllers
             }
         }
 
+        [Authorize("Bearer")]
         [HttpPut]
         public async Task<ActionResult> Put([FromBody] UserEntity user)
         {
@@ -97,6 +101,7 @@ namespace AwesomeStore.Application.Controllers
             }
         }
 
+        [Authorize("Bearer")]
         [HttpDelete]
         [Route("{id}")]
         public async Task<ActionResult> Delete(Guid id)

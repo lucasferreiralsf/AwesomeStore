@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AwesomeStore.CrossCutting.DependencyInjection;
+using AwesomeStore.Domain.Security;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -12,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
 namespace Application
@@ -31,6 +35,36 @@ namespace Application
 
             ConfigureService.ConfigureDependenciesService(services);
             ConfigureRepository.ConfigureDependenciesRepository(services);
+
+            var signingConfiguration = new SigningConfiguration();
+            services.AddSingleton(signingConfiguration);
+
+            var tokenConfiguration = new TokenConfiguration();
+            new ConfigureFromConfigurationOptions<TokenConfiguration>(
+                Configuration.GetSection("TokenConfiguration")).Configure(tokenConfiguration);
+            services.AddSingleton(tokenConfiguration);
+            
+            services.AddAuthentication(authOptions => 
+            {
+                authOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                authOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(bearerOptions => {
+                var paramsValidation = bearerOptions.TokenValidationParameters;
+                paramsValidation.IssuerSigningKey = signingConfiguration.Key;
+                paramsValidation.ValidAudience = tokenConfiguration.Audience;
+                paramsValidation.ValidIssuer = tokenConfiguration.Issuer;
+                paramsValidation.ValidateIssuerSigningKey = true;
+                paramsValidation.ValidateLifetime = true;
+                paramsValidation.ClockSkew = TimeSpan.Zero;
+            });
+
+            services.AddAuthorization(auth => 
+            {
+                auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
+                                                .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                                                .RequireAuthenticatedUser().Build());
+            });
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1",
@@ -46,6 +80,22 @@ namespace Application
                         }
                     }
                 );
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme{
+                    In = ParameterLocation.Header,
+                    Description = "Entre com o token JWT.",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                        },
+                        new[] { "readAccess", "writeAccess" }
+                    }
+                });
             });
             services.AddControllers();
         }

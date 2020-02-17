@@ -10,6 +10,7 @@ namespace AwesomeStore.Data.Context
 
         public MyContext(DbContextOptions<MyContext> options) : base(options)
         {
+            Database.Migrate();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
